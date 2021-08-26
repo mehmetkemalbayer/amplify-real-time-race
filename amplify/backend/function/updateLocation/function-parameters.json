@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "api": {
+      "graphqlrealtimerace": [
+        "Query",
+        "Mutation"
+      ]
+    }
+  },
+  "lambdaLayers": []
+}

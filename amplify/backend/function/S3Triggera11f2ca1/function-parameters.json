@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "api": {
+      "graphqlrealtimerace": [
+        "Mutation"
+      ]
+    }
+  },
+  "lambdaLayers": [
+    {
+      "type": "ProjectLayer",
+      "resourceName": "graphqlrealtimeracesharp",
+      "env": "staging",
+      "version": 1,
+      "isLatestVersionSelected": false
+    }
+  ]
+}

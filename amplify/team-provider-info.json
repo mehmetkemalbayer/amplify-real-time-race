@@ -1,0 +1,48 @@
+{
+  "staging": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-graphqlrealtimerace-staging-182613-authRole",
+      "UnauthRoleArn": "arn:aws:iam::624053774044:role/amplify-graphqlrealtimerace-staging-182613-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::624053774044:role/amplify-graphqlrealtimerace-staging-182613-authRole",
+      "Region": "eu-central-1",
+      "DeploymentBucketName": "amplify-graphqlrealtimerace-staging-182613-deployment",
+      "UnauthRoleName": "amplify-graphqlrealtimerace-staging-182613-unauthRole",
+      "StackName": "amplify-graphqlrealtimerace-staging-182613",
+      "StackId": "arn:aws:cloudformation:eu-central-1:624053774044:stack/amplify-graphqlrealtimerace-staging-182613/28ec3500-d2be-11eb-9eda-026e87c75cb8",
+      "AmplifyAppId": "d9inmodz0k3iy"
+    },
+    "categories": {
+      "auth": {
+        "graphqlrealtimerace": {}
+      },
+      "hosting": {
+        "amplifyhosting": {
+          "appId": "d9inmodz0k3iy",
+          "type": "manual"
+        }
+      },
+      "function": {
+        "raceResultsResolver": {
+          "deploymentBucketName": "amplify-graphqlrealtimerace-staging-182613-deployment",
+          "s3Key": "amplify-builds/raceResultsResolver-376e6234445767377a4e-build.zip"
+        },
+        "updateLocation": {
+          "deploymentBucketName": "amplify-graphqlrealtimerace-staging-182613-deployment",
+          "s3Key": "amplify-builds/updateLocation-7268703863637a356d4d-build.zip"
+        },
+        "S3Triggera11f2ca1": {
+          "deploymentBucketName": "amplify-graphqlrealtimerace-staging-182613-deployment",
+          "s3Key": "amplify-builds/S3Triggera11f2ca1-63412b2b554f54396c4e-build.zip"
+        },
+        "graphqlrealtimeracesharp": {
+          "deploymentBucketName": "amplify-graphqlrealtimerace-staging-182613-deployment",
+          "s3Key": "amplify-builds/graphqlrealtimeracesharp-LambdaLayerVersion9b39294b-build.zip"
+        },
+        "pinpointInterface": {
+          "deploymentBucketName": "amplify-graphqlrealtimerace-staging-182613-deployment",
+          "s3Key": "amplify-builds/pinpointInterface-5954734d61685a366144-build.zip"
+        }
+      }
+    }
+  }
+}

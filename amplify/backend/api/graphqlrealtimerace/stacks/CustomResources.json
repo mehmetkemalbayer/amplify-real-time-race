@@ -1,0 +1,279 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "An auto-generated nested stack.",
+  "Metadata": {},
+  "Parameters": {
+    "AppSyncApiId": {
+      "Type": "String",
+      "Description": "The id of the AppSync API associated with this project."
+    },
+    "AppSyncApiName": {
+      "Type": "String",
+      "Description": "The name of the AppSync API",
+      "Default": "AppSyncSimpleTransform"
+    },
+    "env": {
+      "Type": "String",
+      "Description": "The environment name. e.g. Dev, Test, or Production",
+      "Default": "NONE"
+    },
+    "S3DeploymentBucket": {
+      "Type": "String",
+      "Description": "The S3 bucket containing all deployment assets for the project."
+    },
+    "S3DeploymentRootKey": {
+      "Type": "String",
+      "Description": "An S3 key relative to the S3DeploymentBucket that points to the root\nof the deployment directory."
+    }
+  },
+  "Resources": {
+    "EmptyResource": {
+      "Type": "Custom::EmptyResource",
+      "Condition": "AlwaysFalse"
+    },
+    "RaceResultsDataSourceRole": {
+  "Type": "AWS::IAM::Role",
+  "Properties": {
+    "RoleName": {
+      "Fn::Sub": ["RaceResultsDataSourceRole-${env}", { "env": { "Ref": "env" } }]
+    },
+    "AssumeRolePolicyDocument": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": {
+            "Service": "appsync.amazonaws.com"
+          },
+          "Action": "sts:AssumeRole"
+        }
+      ]
+    },
+    "Policies": [
+      {
+        "PolicyName": "DynamoDBAccess",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:Query",
+                "dynamodb:UpdateItem"
+              ],
+              "Resource": [
+                {
+                  "Fn::Sub": [
+                    "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/raceresults-${env}",
+                    { "env": { "Ref": "env" } }
+                  ]
+                },
+                {
+                  "Fn::Sub": [
+                    "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/raceresults-${env}/*",
+                    { "env": { "Ref": "env" } }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+},
+    "RaceResultsDataSource": {
+      "Type": "AWS::AppSync::DataSource",
+      "Properties": {
+        "ApiId": { "Ref": "AppSyncApiId" },
+        "Name": "RaceInfoTable",
+        "Type": "AMAZON_DYNAMODB",
+        "ServiceRoleArn": {
+          "Fn::GetAtt": ["RaceResultsDataSourceRole", "Arn"]
+        },
+        "DynamoDBConfig": {
+          "AwsRegion": { "Ref": "AWS::Region" },
+          "TableName": {
+            "Fn::Sub": ["raceresults-${env}", { "env": { "Ref": "env" } }]
+          }
+        }
+      }
+    },
+    "QuerygetRacesResolver": {
+      "Type": "AWS::AppSync::Resolver",
+      "Properties": {
+        "ApiId": {
+          "Ref": "AppSyncApiId"
+        },
+        "DataSourceName": {
+          "Fn::GetAtt": ["RaceResultsDataSource", "Name"]
+        },
+        "TypeName": "Query",
+        "FieldName": "getRaces",
+        "RequestMappingTemplateS3Location": {
+          "Fn::Sub": [
+            "s3://${S3DeploymentBucket}/${S3DeploymentRootKey}/resolvers/Query.getRaces.req.vtl",
+            {
+              "S3DeploymentBucket": {
+                "Ref": "S3DeploymentBucket"
+              },
+              "S3DeploymentRootKey": {
+                "Ref": "S3DeploymentRootKey"
+              }
+            }
+          ]
+        },
+        "ResponseMappingTemplateS3Location": {
+          "Fn::Sub": [
+            "s3://${S3DeploymentBucket}/${S3DeploymentRootKey}/resolvers/Query.getRaces.res.vtl",
+            {
+              "S3DeploymentBucket": {
+                "Ref": "S3DeploymentBucket"
+              },
+              "S3DeploymentRootKey": {
+                "Ref": "S3DeploymentRootKey"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "LambdaDataSourceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": {
+          "Fn::Sub": ["LambdaDataSourceRole-${env}", { "env": { "Ref": "env" } }]
+        },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "appsync.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "DynamoDBAccess",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": ["lambda:invokeFunction"],
+                  "Resource": [
+                    {
+                      "Fn::Sub": [
+                        "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:raceResultsResolver-${env}",
+                        { "env": { "Ref": "env" } }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "LambdaDataSource": {
+      "Type": "AWS::AppSync::DataSource",
+      "Properties": {
+        "ApiId": { "Ref": "AppSyncApiId" },
+        "Name": "LambdaDataSource",
+        "Type": "AWS_LAMBDA",
+        "ServiceRoleArn": {
+          "Fn::GetAtt": ["LambdaDataSourceRole", "Arn"]
+        },
+        "LambdaConfig": {
+          "LambdaFunctionArn": {
+            "Fn::Sub": [
+              "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:raceResultsResolver-${env}",
+              { "env": { "Ref": "env" } }
+            ]
+          }
+        }
+      }
+    },
+    "QuerygetResultsResolver": {
+      "Type": "AWS::AppSync::Resolver",
+      "Properties": {
+        "ApiId": { "Ref": "AppSyncApiId" },
+        "DataSourceName": { "Fn::GetAtt": ["LambdaDataSource", "Name"] },
+        "TypeName": "Query",
+        "FieldName": "getResults"
+      }
+    },
+    "QuerygetResultsResolverPipeline": {
+      "Type": "AWS::AppSync::Resolver",
+      "Properties": {
+        "ApiId": { "Ref": "AppSyncApiId" },
+        "TypeName": "Query",
+        "FieldName": "getResults2",
+        "Kind": "PIPELINE",
+        "RequestMappingTemplate": "{}",
+        "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)",
+        "PipelineConfig": {
+          "Functions": [
+            { "Fn::GetAtt": ["GetterFunctionConfiguration", "FunctionId"] },
+            { "Fn::GetAtt": ["FilterFunctionConfiguration", "FunctionId"] }
+          ]
+        }
+      }
+    },
+    "GetterFunctionConfiguration": {
+      "Type": "AWS::AppSync::FunctionConfiguration",
+      "Properties": {
+        "ApiId": { "Ref": "AppSyncApiId" },
+        "Name": "getResultsLambda",
+        "FunctionVersion": "2018-05-29",
+        "DataSourceName": { "Fn::GetAtt": ["LambdaDataSource", "Name"] }
+      }
+    },
+    "FilterFunctionConfiguration": {
+      "Type": "AWS::AppSync::FunctionConfiguration",
+      "Properties": {
+        "ApiId": { "Ref": "AppSyncApiId" },
+        "Name": "fitlterResults",
+        "FunctionVersion": "2018-05-29",
+        "DataSourceName": "NONE",
+        "RequestMappingTemplate": "{}",
+        "ResponseMappingTemplate": "#set($items = [])\n #foreach($result in $context.prev.result)\n #if( $result.status == \"Finished\" )\n $util.qr($items.add($result))\n #end\n #end\n $util.toJson($items)"
+      }
+    }
+
+  },
+  "Conditions": {
+    "HasEnvironmentParameter": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "env"
+            },
+            "NONE"
+          ]
+        }
+      ]
+    },
+    "AlwaysFalse": {
+      "Fn::Equals": ["true", "false"]
+    }
+  },
+  "Outputs": {
+    "EmptyOutput": {
+      "Description": "An empty output. You may delete this if you have at least one resource above.",
+      "Value": ""
+    }
+  }
+}
